@@ -25,12 +25,3 @@ model = Word2Vec(
 # Step 3: 保存模型为 binary 格式（可加载到 gensim 或 numpy）
 model.wv.save_word2vec_format("data/word2vec/text8_vectors.bin", binary=True)
 
-# （可选）只保存前 100k 个词向量（方便后续降维）
-top_words = model.wv.index_to_key[:100000]
-with open("data/word2vec/text8_vectors_top100k.txt", "w", encoding="utf-8") as f:
-    for word in top_words:
-        vector = model.wv[word]
-        f.write(f"{word} {' '.join(map(str, vector))}\n")
-
-print("Word2Vec training & export complete.")
-print("Saved to:", save_dir)
