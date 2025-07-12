@@ -1,15 +1,18 @@
 import os
 import numpy as np
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from src.utils.dimensionality_utils import *
 
+
 if __name__ == "__main__":
     # Paths
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    # 调用有些问题 bin_path = os.path.join(base_dir, "..", "..", "data", "word2vec", "text8_vectors.bin")
-    bin_path = "data/word2vec/text8_vectors.bin"
-    fig_path = os.path.join(base_dir, "..", "data", "word2vec", "tsne_embedding.png")
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 
+    # 调用有些问题 bin_path = os.path.join(base_dir, "..", "..", "data", "word2vec", "text8_vectors.bin")
+    bin_path = os.path.join(project_root, "data", "word2vec", "text8_vectors.bin")
+    fig_path = os.path.join(project_root, "data", "word2vec", "tsne_embedding.png")
     # Load vectors
     vectors, labels = load_word_vectors(bin_path, top_n=10000)
 
