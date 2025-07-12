@@ -1,6 +1,6 @@
 from sklearn.manifold import SpectralEmbedding, Isomap, TSNE
-from datafold.dynfold import DiffusionMaps
-from gensim.models import KeyedVectors
+#from datafold.dynfold import DiffusionMaps
+#from gensim.models import KeyedVectors
 import matplotlib.pyplot as plt
 
 # ========================================
