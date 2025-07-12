@@ -1,13 +1,16 @@
 import os
-import numpy as np
+import sys
 
-from src.utils.dimensionality_utils import *
+# 获取当前文件目录的上级目录（src）
+src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
 
+from utils.dimensionality_utils import *
 if __name__ == "__main__":
     # Paths
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    # 调用有些问题 bin_path = os.path.join(base_dir, "..", "..", "data", "word2vec", "text8_vectors.bin")
-    bin_path = "data/word2vec/text8_vectors.bin"
+    bin_path = os.path.join(base_dir, "..", "data", "word2vec", "text8_vectors.bin")
     fig_path = os.path.join(base_dir, "..", "data", "word2vec", "tsne_embedding.png")
 
     # Load vectors
@@ -18,3 +21,5 @@ if __name__ == "__main__":
 
     # Plot & Save
     plot_2d_embedding(X_2d, labels, save_path=fig_path)
+
+

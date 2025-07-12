@@ -1,8 +1,12 @@
 import os
-import numpy as np
+import sys
+
+# 获取当前文件目录的上级目录（src）
+src_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+if src_dir not in sys.path:
+    sys.path.insert(0, src_dir)
 
 from utils.dimensionality_utils import *
-
 
 if __name__ == "__main__":
     # Paths
