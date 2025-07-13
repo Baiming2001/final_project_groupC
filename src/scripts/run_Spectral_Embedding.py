@@ -6,9 +6,9 @@ from utils.dimensionality_utils import *
 
 if __name__ == "__main__":
     # Paths
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    bin_path = os.path.join(base_dir, "..", "data", "word2vec", "text8_vectors.bin")
-    fig_path = os.path.join(base_dir, "..", "data", "word2vec", "spectral_embedding.png")
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
+    bin_path = os.path.join(project_root, "..", "data", "word2vec", "text8_vectors.bin")
+    fig_path = os.path.join(project_root, "..", "data", "word2vec", "spectral_embedding.png")
 
     # Load vectors
     vectors, labels = load_word_vectors(bin_path, top_n=10000)

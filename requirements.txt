@@ -1,5 +1,3 @@
-gensim
-scikit-learn
-matplotlib
-numpy
-datafold
+version https://git-lfs.github.com/spec/v1
+oid sha256:8a53f3ffc4e90a74728c7ebb36946d7eb1c0fa797fcd972a49e3788fe240cd00
+size 46
