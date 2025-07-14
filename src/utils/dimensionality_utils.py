@@ -1,5 +1,6 @@
 from sklearn.manifold import SpectralEmbedding, Isomap, TSNE
 from datafold.dynfold import DiffusionMaps
+from datafold.pcfold import GaussianKernel
 from gensim.models import KeyedVectors
 import matplotlib.pyplot as plt
 
@@ -60,11 +61,46 @@ def run_isomap(vectors, n_components=2, n_neighbors=10):
     return model.fit_transform(vectors)
 
 
-def run_diffusion_maps(vectors, n_components=2, n_neighbors=10, epsilon='bgh'):
+def run_diffusion_maps(vectors, n_components=2, epsilon=1):
     """
-    Diffusion Maps using datafold.
+    Perform nonlinear dimensionality reduction using Diffusion Maps.
+
+    Diffusion Maps is a spectral method that constructs a diffusion process
+    over the data, capturing the manifold geometry by computing the eigenvectors
+    of the diffusion operator. It is particularly useful for identifying 
+    low-dimensional structure in high-dimensional, nonlinear datasets.
+
+    This implementation uses the `datafold` library.
+
+    Parameters
+    ----------
+    vectors : ndarray of shape (n_samples, n_features)
+        High-dimensional input data to be embedded.
+
+    n_components : int, optional (default=2)
+        The number of diffusion components (eigenvectors) to retain. 
+        This determines the dimensionality of the embedded space.
+
+    n_neighbors : int, optional (default=10)
+        The number of nearest neighbors to use when constructing the
+        affinity (kernel) graph.
+
+    epsilon : {'bgh'} or float, optional (default='bgh')
+        Kernel scale parameter controlling the width of the Gaussian kernel.
+        - 'bgh': automatic estimation using Berry-Harlim-Giannakis heuristic.
+        - float: a user-defined positive number for fixed scale.
+
+    Returns
+    -------
+    embedding : ndarray of shape (n_samples, n_components)
+        The embedded coordinates of the input data in the diffusion space.
     """
-    model = DiffusionMaps(n_eigenpairs=n_components, kernel_scale=epsilon, n_neighbors=n_neighbors)
+
+    kernel = GaussianKernel(epsilon=epsilon, distance=None) 
+    model = DiffusionMaps(
+        kernel=kernel, 
+        n_eigenpairs=n_components, 
+        )
     return model.fit_transform(vectors)
 
 
