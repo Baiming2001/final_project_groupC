@@ -132,7 +132,7 @@ def load_word_vectors(bin_path, top_n=10000):
     labels = model.index_to_key[:top_n]
     return vectors, labels
 
-def plot_2d_embedding(X_2d, labels, title="2D Embedding", save_path=None):
+def plot_2d_embedding(X_2d, title="2D Embedding", save_path=None):
     """
     Scatter plot of 2D embedding result.
 
@@ -151,6 +151,17 @@ def plot_2d_embedding(X_2d, labels, title="2D Embedding", save_path=None):
     plt.scatter(X_2d[:, 0], X_2d[:, 1], s=1, alpha=0.6)
     plt.title(title)
     plt.axis("off")
+    if save_path:
+        plt.savefig(save_path, dpi=300, bbox_inches='tight')
+        print(f"Plot saved to {save_path}")
+    plt.show()
+
+def plot_2d_embedding_colored(X_2d, colors, title, save_path=None):
+    plt.figure(figsize=(10,10))
+    scatter = plt.scatter(X_2d[:,0], X_2d[:,1], c=colors, cmap='Spectral', s=5)
+    plt.colorbar(scatter)
+    plt.title(title)
+    plt.axis('off')
     if save_path:
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         print(f"Plot saved to {save_path}")
