@@ -1,5 +1,6 @@
 from sklearn.manifold import SpectralEmbedding, Isomap, TSNE
 from datafold.dynfold import DiffusionMaps
+from datafold.pcfold import GaussianKernel
 from gensim.models import KeyedVectors
 import matplotlib.pyplot as plt
 
@@ -60,7 +61,7 @@ def run_isomap(vectors, n_components=2, n_neighbors=10):
     return model.fit_transform(vectors)
 
 
-def run_diffusion_maps(vectors, n_components=2, n_neighbors=10, epsilon='bgh'):
+def run_diffusion_maps(vectors, n_components=2, epsilon=1):
     """
     Perform nonlinear dimensionality reduction using Diffusion Maps.
 
@@ -94,10 +95,12 @@ def run_diffusion_maps(vectors, n_components=2, n_neighbors=10, epsilon='bgh'):
     embedding : ndarray of shape (n_samples, n_components)
         The embedded coordinates of the input data in the diffusion space.
     """
+
+    kernel = GaussianKernel(epsilon=epsilon, distance=None) 
     model = DiffusionMaps(
+        kernel=kernel, 
         n_eigenpairs=n_components, 
-        kernel_scale=epsilon, 
-        n_neighbors=n_neighbors)
+        )
     return model.fit_transform(vectors)
 
 
