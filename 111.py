@@ -1,0 +1,2 @@
+import datafold
+help(datafold)
