@@ -1,2 +1,0 @@
-import datafold
-help(datafold)
