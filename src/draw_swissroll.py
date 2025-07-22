@@ -8,8 +8,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from swissroll import swiss_roll_dataset
 
-datapoints=20000
-length_phi=0.004*datapoints*np.pi
+datapoints=10000
+length_phi=4*np.pi
 length_Z=0.001*datapoints
 phi, Z, data = swiss_roll_dataset(length_phi, length_Z, 20, datapoints)
 
