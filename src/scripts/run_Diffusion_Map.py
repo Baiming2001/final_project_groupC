@@ -11,7 +11,7 @@ sys.path.append(project_root)
 
 from src.utils.dimensionality_utils import *
 
-if __name__ == "__main__":
+if __name__ == "__main__": 
 
     def diffusion_map_on_dataset(dataset, n_samples, n_extra_dims, n_components): 
         """
@@ -61,6 +61,7 @@ if __name__ == "__main__":
             dmap = run_diffusion_maps(X_extra_dims, n_components = n_components)
 
         elif dataset == "word2vec": 
+            # load certain number (n_samples) of most frequent vectors in word2vec
             bin_path = os.path.join(project_root, "data", "word2vec", "text8_vectors_train.bin")
             vectors, _ = load_word_vectors(bin_path, top_n=n_samples)
             X_color = np.random.rand(vectors.shape[0])
@@ -95,7 +96,7 @@ if __name__ == "__main__":
 
         # add title to the plot
         evec_indices = selection.evec_indices_
-        ax.set_title(rf"Eigenvectors selected by the diffusion map method: $\Psi_1$ and $\Psi_{{{evec_indices[1]}}}$", fontsize=16)
+        ax.set_title(rf"Eigenvectors selected by the diffusion map method on {dataset}: $\Psi_1$ and $\Psi_{{{evec_indices[1]}}}$", fontsize=16)
 
         # add label for x- and y-axis, save to fig_path_swissroll
         ax.set_xlabel(rf"$\Psi_1$", fontsize=12)
