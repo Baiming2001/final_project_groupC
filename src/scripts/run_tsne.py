@@ -10,6 +10,40 @@ from src.utils.dimensionality_utils import *
 
 if __name__ == "__main__": 
     def tsne_on_dataset(dataset, n_samples, n_extra_dims):
+        """
+        Apply t-SNE on a selected dataset and generate a 2D embedding plot.
+
+        This function supports two datasets:
+        - "swissroll": generates a synthetic Swiss Roll dataset with optional 
+        Gaussian noise dimensions added to increase ambient dimensionality.
+        - "word2vec": loads a Word2Vec embedding and selects the top `n_samples` 
+        most frequent word vectors.
+
+        For both datasets, t-SNE is applied to reduce the data to 2 dimensions.
+        The resulting embedding is visualized and saved as a PNG figure.
+
+        Parameters
+        ----------
+        dataset : str
+            The dataset to use. Must be one of:
+            - "swissroll"
+            - "word2vec"
+
+        n_samples : int
+            Number of samples to generate or load.
+            - For "swissroll", determines the number of points in the generated dataset.
+            - For "word2vec", determines the number of most frequent word vectors to load.
+
+        n_extra_dims : int
+            Only used for "swissroll". Number of additional Gaussian noise dimensions
+            to add to the original 3D Swiss Roll. Ignored for "word2vec".
+
+        Returns
+        -------
+        None
+            The function saves a 2D scatter plot of the t-SNE embedding to the local file system.
+            No values are returned.
+        """
         # choose dataset and use diffusion map to reduce dimensionality to 2
         if dataset == "swissroll": 
             # generate swiss roll dataset in 3 dimensions without noise
