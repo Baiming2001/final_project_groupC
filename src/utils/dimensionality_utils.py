@@ -1,6 +1,6 @@
 from sklearn.manifold import SpectralEmbedding, Isomap, TSNE
-from datafold.dynfold import DiffusionMaps
-from datafold.pcfold import GaussianKernel
+import datafold.dynfold as dfold
+import datafold.pcfold as pfold
 from gensim.models import KeyedVectors
 import matplotlib.pyplot as plt
 
@@ -61,47 +61,44 @@ def run_isomap(vectors, n_components=2, n_neighbors=10):
     return model.fit_transform(vectors)
 
 
-def run_diffusion_maps(vectors, n_components=2, epsilon=1):
+def run_diffusion_maps(vectors, n_components=10):
     """
-    Perform nonlinear dimensionality reduction using Diffusion Maps.
+    Apply Diffusion Maps for nonlinear dimensionality reduction.
 
-    Diffusion Maps is a spectral method that constructs a diffusion process
-    over the data, capturing the manifold geometry by computing the eigenvectors
-    of the diffusion operator. It is particularly useful for identifying 
-    low-dimensional structure in high-dimensional, nonlinear datasets.
+    Diffusion Maps is a spectral embedding technique that models a diffusion 
+    process over the dataset, revealing its intrinsic geometric structure. 
+    By computing the leading eigenvectors of a diffusion operator, it provides 
+    low-dimensional embeddings that preserve the manifold topology.
 
-    This implementation uses the `datafold` library.
+    This function uses the `datafold` library, which wraps kernel-based manifold 
+    learning with data-driven parameter tuning.
 
     Parameters
     ----------
     vectors : ndarray of shape (n_samples, n_features)
-        High-dimensional input data to be embedded.
+        Input data to embed. Typically a high-dimensional representation of points 
+        lying on or near a low-dimensional manifold.
 
-    n_components : int, optional (default=2)
-        The number of diffusion components (eigenvectors) to retain. 
-        This determines the dimensionality of the embedded space.
-
-    n_neighbors : int, optional (default=10)
-        The number of nearest neighbors to use when constructing the
-        affinity (kernel) graph.
-
-    epsilon : {'bgh'} or float, optional (default='bgh')
-        Kernel scale parameter controlling the width of the Gaussian kernel.
-        - 'bgh': automatic estimation using Berry-Harlim-Giannakis heuristic.
-        - float: a user-defined positive number for fixed scale.
+    n_components : int, optional (default=10)
+        Number of diffusion components (i.e., eigenvectors) to compute and return. 
+        Determines the dimensionality of the resulting embedding.
 
     Returns
     -------
-    embedding : ndarray of shape (n_samples, n_components)
-        The embedded coordinates of the input data in the diffusion space.
+    dmap : datafold.dynfold.DiffusionMaps
+        A fitted DiffusionMaps object from which the embedding can be obtained via 
+        `dmap.eigenvectors_`, and diffusion coordinates via `dmap.transform(...)`.
     """
 
-    kernel = GaussianKernel(epsilon=epsilon, distance=None) 
-    model = DiffusionMaps(
-        kernel=kernel, 
-        n_eigenpairs=n_components, 
-        )
-    return model.fit_transform(vectors)
+    # use a PCManifold to estimate hyperparameters
+    # the attached kernel in PCManifold defaults to a Gaussian kernel
+    X_pcm = pfold.PCManifold(vectors)
+    X_pcm.optimize_parameters()
+    dmap = dfold.DiffusionMaps(
+        kernel = pfold.GaussianKernel(
+            epsilon=X_pcm.kernel.epsilon, distance=dict(cut_off=X_pcm.cut_off)), 
+            n_eigenpairs=n_components, )
+    return dmap.fit(X_pcm)
 
 
 
@@ -151,17 +148,6 @@ def plot_2d_embedding(X_2d, title="2D Embedding", save_path=None):
     plt.scatter(X_2d[:, 0], X_2d[:, 1], s=1, alpha=0.6)
     plt.title(title)
     plt.axis("off")
-    if save_path:
-        plt.savefig(save_path, dpi=300, bbox_inches='tight')
-        print(f"Plot saved to {save_path}")
-    plt.show()
-
-def plot_2d_embedding_colored(X_2d, colors, title, save_path=None):
-    plt.figure(figsize=(10,10))
-    scatter = plt.scatter(X_2d[:,0], X_2d[:,1], c=colors, cmap='Spectral', s=5)
-    plt.colorbar(scatter)
-    plt.title(title)
-    plt.axis('off')
     if save_path:
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         print(f"Plot saved to {save_path}")
