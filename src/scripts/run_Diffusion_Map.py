@@ -12,68 +12,80 @@ sys.path.append(project_root)
 from src.utils.dimensionality_utils import *
 
 if __name__ == "__main__":
-    
-    ############################################
-    # Swiss Roll Dataset
-    ############################################
 
-    def diffusion_map_for_swissroll(n_samples, n_extra_dims, n_components): 
+    def diffusion_map_on_dataset(dataset, n_samples, n_extra_dims, n_components): 
         """
-        Apply Diffusion Maps with automatic eigenvector selection on a synthetic Swiss Roll dataset.
+        Apply Diffusion Maps with automatic eigenvector selection on a given dataset.
 
-        This function generates a 3D Swiss Roll dataset, optionally augments it with 
-        additional Gaussian noise dimensions, and performs nonlinear dimensionality 
-        reduction using Diffusion Maps. The most informative eigenvectors are selected 
-        using `LocalRegressionSelection`, and the resulting 2D embedding is visualized 
-        and saved as a scatter plot colored by the data's intrinsic structure.
+        This function performs nonlinear dimensionality reduction using Diffusion Maps
+        on either a synthetic Swiss Roll dataset or a pre-trained Word2Vec embedding.
+        The most informative diffusion components are selected using`LocalRegressionSelection`, 
+        and the resulting 2D embedding is visualized and saved as a scatter plot.
 
         Parameters
         ----------
-        n_samples : int
-            Number of data points to generate in the Swiss Roll dataset.
+        dataset : str
+            Name of the dataset to use. Must be one of:
+            - "swissroll": generates a 3D Swiss Roll dataset with optional Gaussian noise dimensions.
+            - "word2vec": loads a Word2Vec embedding from file.
 
-        n_extra_dims : int
-            Number of additional Gaussian noise dimensions to append to the data,
-            increasing the ambient dimensionality.
+        n_samples : int
+            Number of data points to use:
+            - For "swissroll", this is the number of points generated.
+            - For "word2vec", this controls how many top vectors are loaded.
+
+        n_extra_dims : int or None
+            Only used for dataset "swissroll". Number of additional Gaussian noise dimensions
+            to append to the 3D Swiss Roll. Ignored for "word2vec".
 
         n_components : int
-            Number of diffusion components (eigenvectors) to compute using Diffusion Maps.
+            Number of eigenvectors (diffusion components) to compute during
+            Diffusion Maps embedding.
 
         Returns
         -------
         None
-            The function produces and saves a 2D scatter plot to the local file system.
-            No data is returned.
+            The function produces and saves a 2D scatter plot showing the data
+            embedded via the selected diffusion components. No values are returned.
         """
-        # generate swiss roll dataset in 3 dimensions without noise
-        X_3d, X_color = make_swiss_roll(n_samples=n_samples, noise=0.0)
+        # choose dataset and use diffusion map to reduce dimensionality to 2
+        if dataset == "swissroll": 
+            # generate swiss roll dataset in 3 dimensions without noise
+            X_3d, X_color = make_swiss_roll(n_samples=n_samples, noise=0.0)
 
-        # add extra Gaussian noise dimensions to the original swissroll dataset
-        noise_dims = np.random.randn(X_3d.shape[0], n_extra_dims)
-        X_extra_dims = np.hstack((X_3d, noise_dims)) 
+            # add extra Gaussian noise dimensions to the original swissroll dataset
+            noise_dims = np.random.randn(X_3d.shape[0], n_extra_dims)
+            X_extra_dims = np.hstack((X_3d, noise_dims)) 
 
-        # use Diffusion Maps on swiss roll dataset to reduce the dimensionality to 2
-        dmap = run_diffusion_maps(X_extra_dims, n_components = n_components)
+            # use Diffusion Maps on swiss roll dataset to reduce the dimensionality to 2
+            dmap = run_diffusion_maps(X_extra_dims, n_components = n_components)
 
+        elif dataset == "word2vec": 
+            bin_path = os.path.join(project_root, "data", "word2vec", "text8_vectors_train.bin")
+            vectors, _ = load_word_vectors(bin_path, top_n=n_samples)
+            X_color = np.random.rand(vectors.shape[0])
+
+            # use Diffusion Maps on word2vec dataset to reduce the dimensionality to 2
+            dmap = run_diffusion_maps(vectors, n_components = n_components)
+
+        else: 
+            raise ValueError(f"Unknown dataset '{dataset}'. Please choose either 'swissroll' or 'word2vec'.")
+        
         # find best eigenvector using LocalRegressionSelection
         selection = LocalRegressionSelection(
             intrinsic_dim=2, 
-            n_subsample=min(1000, n_samples * 0.2), 
+            n_subsample=int(n_samples * 0.2), 
             strategy="dim"
             ).fit(dmap.eigenvectors_)
 
-        # paths for saving the plot  result 
-        fig_filename = f"diffusion_maps_n{n_samples}_d{n_extra_dims + 3}.png"
-        fig_path_swissroll = os.path.join(project_root, "data", "swissroll", fig_filename)
-
         # reduce number of points for plotting
         rng = np.random.default_rng(1)
-        nr_samples_plot = int(n_samples * 0.1)
+        nr_samples_plot = int(n_samples * 0.2)
         idx_plot = rng.permutation(n_samples)[0:nr_samples_plot]
 
         # plot the selection result
         target_mapping = selection.transform(dmap.eigenvectors_)
-        f, ax = plt.subplots(figsize=(15, 9))
+        _, ax = plt.subplots(figsize=(15, 9))
         ax.scatter(
             target_mapping[idx_plot, 0],
             target_mapping[idx_plot, 1],
@@ -88,7 +100,16 @@ if __name__ == "__main__":
         # add label for x- and y-axis, save to fig_path_swissroll
         ax.set_xlabel(rf"$\Psi_1$", fontsize=12)
         ax.set_ylabel(rf"$\Psi_{{{evec_indices[1]}}}$", fontsize=12)
-        plt.savefig(fig_path_swissroll)
+
+        # paths for saving the plot result 
+        if dataset == "swissroll":
+            fig_filename = f"diffusion_maps_swissroll_n{n_samples}_d{n_extra_dims + 3}.png"
+            fig_path = os.path.join(project_root, "data", "swissroll", fig_filename)
+
+        elif dataset == "word2vec": 
+            fig_filename = f"diffusion_maps_word2vec.png"
+            fig_path = os.path.join(project_root, "data", "word2vec", fig_filename)
+        plt.savefig(fig_path)
 
         # optional: plot pairing eigenvectors, ignore first eigenvector phi_0
         # plot_pairwise_eigenvector(
@@ -102,14 +123,16 @@ if __name__ == "__main__":
         plt.show()
 
     # main
-    n_samples = 10000
-    n_extra_dims = 0
-    n_components = 10
-    diffusion_map_for_swissroll(n_samples=n_samples, n_extra_dims=n_extra_dims, n_components=n_components)
+    # swissroll
+    n_components_swissroll = 20
+    n_samples_swissroll = 10000
+    n_extra_dims_swissroll = 0
+    diffusion_map_on_dataset(dataset="swissroll", n_samples=n_samples_swissroll, n_extra_dims=n_extra_dims_swissroll, n_components=n_components_swissroll)
 
-    ############################################
-    # Word2Vec Dataset
-    ############################################
+    # word2vec
+    n_components_wordvec = 20
+    n_samples_word2vec = 5000
+    diffusion_map_on_dataset(dataset="word2vec", n_samples=n_samples_word2vec, n_extra_dims=None, n_components=n_components_wordvec)
 
 
 
