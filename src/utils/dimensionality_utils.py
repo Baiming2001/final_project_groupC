@@ -42,7 +42,37 @@ def run_spectral_embedding(vectors, n_components=2, n_neighbors=20):
 
 def run_tsne(vectors, n_components=2, perplexity=30, init='pca', random_state=42):
     """
-    t-SNE using scikit-learn (or openTSNE if needed).
+    Perform t-SNE dimensionality reduction using scikit-learn.
+
+    This function reduces high-dimensional input vectors to a low-dimensional
+    representation using t-distributed Stochastic Neighbor Embedding (t-SNE).
+    It is especially useful for visualizing the structure of word embeddings,
+    image features, or other high-dimensional data.
+
+    Parameters
+    ----------
+    vectors : ndarray of shape (n_samples, n_features)
+        High-dimensional input data to be embedded.
+
+    n_components : int, optional (default=2)
+        Dimension of the embedded space. Typically 2 or 3 for visualization.
+
+    perplexity : float, optional (default=30)
+        The perplexity controls the balance between local and global aspects
+        of the data. Recommended range is between 5 and 50.
+
+    init : {'pca', 'random'}, optional (default='pca')
+        Initialization method for the embedding:
+        - 'pca': use PCA projection as initialization (more stable)
+        - 'random': use random initialization
+
+    random_state : int, optional (default=42)
+        Random seed for reproducibility of the embedding.
+
+    Returns
+    -------
+    embedding : ndarray of shape (n_samples, n_components)
+        Low-dimensional t-SNE embedding of the input data.
     """
     model = TSNE(
         n_components=n_components,
@@ -89,7 +119,6 @@ def run_diffusion_maps(vectors, n_components=10):
         A fitted DiffusionMaps object from which the embedding can be obtained via 
         `dmap.eigenvectors_`, and diffusion coordinates via `dmap.transform(...)`.
     """
-
     # use a PCManifold to estimate hyperparameters
     # the attached kernel in PCManifold defaults to a Gaussian kernel
     X_pcm = pfold.PCManifold(vectors)
