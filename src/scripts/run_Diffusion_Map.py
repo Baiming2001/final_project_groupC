@@ -242,15 +242,15 @@ if __name__ == "__main__":
     n_components_swissroll = 20
     n_samples_swissroll = 10000
     n_extra_dims_swissroll = 97
-    # diffusion_map_on_dataset(dataset="swissroll", n_samples=n_samples_swissroll, n_extra_dims=n_extra_dims_swissroll, n_components=n_components_swissroll)
+    diffusion_map_on_dataset(dataset="swissroll", n_samples=n_samples_swissroll, n_extra_dims=n_extra_dims_swissroll, n_components=n_components_swissroll)
     benchmark_diffusion_map_runtime(mode="vary_N")
-    # benchmark_diffusion_map_runtime(mode="vary_D")
+    benchmark_diffusion_map_runtime(mode="vary_D")
 
 
     # word2vec
     n_components_wordvec = 20
     n_samples_word2vec = 5000
-    # diffusion_map_on_dataset(dataset="word2vec", n_samples=n_samples_word2vec, n_extra_dims=None, n_components=n_components_wordvec)
+    diffusion_map_on_dataset(dataset="word2vec", n_samples=n_samples_word2vec, n_extra_dims=None, n_components=n_components_wordvec)
 
 
 
