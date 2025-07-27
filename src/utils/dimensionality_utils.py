@@ -181,3 +181,31 @@ def plot_2d_embedding(X_2d, title="2D Embedding", save_path=None):
         plt.savefig(save_path, dpi=300, bbox_inches='tight')
         print(f"Plot saved to {save_path}")
     plt.show()
+
+def estimate_memory_GB(N=50000, D=100, factor=8):
+    """
+    Estimate the total memory usage (in GB) for performing diffusion maps on a dataset.
+
+    This function approximates the memory required to process a dataset of N samples
+    with D features during diffusion maps computation. It includes a scaling factor
+    to account for the overhead introduced by intermediate structures such as 
+    distance matrices, sparse graphs, kernel values, and eigen decomposition.
+
+    Parameters
+    ----------
+    N : int
+        Number of data points (samples).
+
+    D : int, optional (default=100)
+        Number of features (dimensionality) of the data.
+
+    factor : float, optional (default=8)
+        Empirical scaling factor to approximate total memory usage,
+        considering overhead beyond just storing the data matrix.
+
+    Returns
+    -------
+    float
+        Estimated memory usage in gigabytes (GB).
+    """
+    return N * D * 8 * factor / (1024 ** 3)
