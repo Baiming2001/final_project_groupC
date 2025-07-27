@@ -186,10 +186,10 @@ def estimate_memory_GB(N=50000, D=100, factor=8):
     """
     Estimate the total memory usage (in GB) for performing diffusion maps on a dataset.
 
-    This function approximates the memory required to process a dataset of N samples
-    with D features during diffusion maps computation. It includes a scaling factor
-    to account for the overhead introduced by intermediate structures such as 
-    distance matrices, sparse graphs, kernel values, and eigen decomposition.
+    This function estimates the memory required to process a dataset with N samples
+    and D dimensions using Diffusion Maps. It takes into account both the data matrix 
+    (N × D) and the full pairwise distance matrix (N × N), assuming float64 precision 
+    (8 bytes per value).
 
     Parameters
     ----------
@@ -197,15 +197,16 @@ def estimate_memory_GB(N=50000, D=100, factor=8):
         Number of data points (samples).
 
     D : int, optional (default=100)
-        Number of features (dimensionality) of the data.
-
-    factor : float, optional (default=8)
-        Empirical scaling factor to approximate total memory usage,
-        considering overhead beyond just storing the data matrix.
+        Number of features (dimensions) per sample.
 
     Returns
     -------
     float
-        Estimated memory usage in gigabytes (GB).
+        Estimated total memory usage in gigabytes (GB), including:
+        - Data matrix: N × D × 8 bytes
+        - Pairwise distance matrix: N × N × 8 bytes
     """
-    return N * D * 8 * factor / (1024 ** 3)
+    data_mem = N * D * 8
+    dist_mem = N * N * 8
+    total_mem = data_mem + dist_mem
+    return total_mem / (1024**3)

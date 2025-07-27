@@ -131,11 +131,10 @@ if __name__ == "__main__":
         # experiment 2: fix N = 50000, vary data dimension D
         runtimes = []
         x_values = []
-        skipped = []
         n_components = 10
         if mode == "vary_N": 
             n_extra_dims = 97
-            sample_sizes = [1e4, 2e4, 5e4, 1e5, 2e5, 5e5, 1e6, 2e6, 5e6]
+            sample_sizes = [1e4, 2e4, 5e4, 1e5, 2e5, 5e5, 1e6]
             pbar = tqdm(sample_sizes, desc="Varying N")
 
             for N in pbar: 
@@ -143,7 +142,6 @@ if __name__ == "__main__":
                 est_mem = estimate_memory_GB(N=N)
                 if est_mem > 10:
                     print(f"Skipping N={int(N)}: estimated memory {est_mem:.2f} GB > {10} GB")
-                    skipped.append(N)
                     continue
 
                 # generate swissroll with 100 dimensions and N samples
@@ -157,11 +155,9 @@ if __name__ == "__main__":
                     _ = run_diffusion_maps(X_extra_dims, n_components=n_components)
                 except MemoryError:
                     print(f"MemoryError at N={int(N)}, skipping...")
-                    skipped.append(N)
                     continue
                 except Exception as e:
                     print(f"Exception at N={int(N)}: {type(e).__name__} - {e}")
-                    skipped.append(N)
                     continue
 
                 end = time.time()
@@ -172,6 +168,11 @@ if __name__ == "__main__":
                 runtimes.append(runtime)
                 x_values.append(N)
 
+                # early stop to save some time
+                if runtime >= 1e4:
+                    print(f"Runtime exceeded 1e4 seconds at N={int(N)}, stopping benchmark early.")
+                    break
+
         elif mode == "vary_D": 
             n_samples = 50000
             n_extra_dims = [7, 17, 47, 97, 197, 497, 997, 1997, 4997, 9997]
@@ -179,10 +180,9 @@ if __name__ == "__main__":
 
             for D in pbar: 
                 # estimate memory usage
-                est_mem = estimate_memory_GB(D=D)
+                est_mem = estimate_memory_GB(D=D+3)
                 if est_mem > 10:
-                    print(f"Skipping N={int(N)}: estimated memory {est_mem:.2f} GB > {10} GB")
-                    skipped.append(N)
+                    print(f"Skipping D={int(D+3)}: estimated memory {est_mem:.2f} GB > {10} GB")
                     continue
                 # generate swissroll with (D+3) dimensions and 50000 samples
                 X_3d, _ = make_swiss_roll(n_samples=n_samples, noise=0.0)
@@ -195,11 +195,9 @@ if __name__ == "__main__":
                     _ = run_diffusion_maps(X_extra_dims, n_components=n_components)
                 except MemoryError:
                     print(f"MemoryError at D={int(D)}, skipping...")
-                    skipped.append(D)
                     continue
                 except Exception as e:
                     print(f"Exception at D={int(D)}: {type(e).__name__} - {e}")
-                    skipped.append(D)
                     continue
                 end = time.time()
                 runtime = end - start
@@ -207,7 +205,12 @@ if __name__ == "__main__":
                 # record run time and correspondent number of samples N
                 pbar.set_postfix({"D": int(D), "runtime": round(runtime, 2)})
                 runtimes.append(runtime)
-                x_values.append(N)
+                x_values.append(D)
+
+                # early stop to save some time
+                if runtime >= 1e4:
+                    print(f"Runtime exceeded 1e4 seconds at D={int(D)}, stopping benchmark early.")
+                    break
 
         else: 
             raise ValueError(f"Unknown mode '{mode}'. Please choose either 'vary_N' or 'vary_D'.")            
@@ -221,9 +224,11 @@ if __name__ == "__main__":
         plt.title(f"Runtime vs. {xlabel}, 100 features" if mode == "vary_N" else f"Runtime vs. {xlabel}, 50000 samples")
         plt.grid(True)
         if mode == "vary_N":
-            plt.xlim(left=1e4)
+            plt.xlim(left=1e4, right = 1e6)
+            plt.ylim(bottom= 1e0, top = 1e4)
         elif mode == "vary_D":
-            plt.xlim(left=1e1)
+            plt.xlim(left=1e1, right = 1e4)
+            plt.ylim(bottom= 1e0, top = 1e4)
         plt.legend()
         plt.tight_layout()
 
@@ -233,8 +238,6 @@ if __name__ == "__main__":
         plt.savefig(fig_path)
         plt.show()
 
-
-
     #################################################
     # main
     #################################################
@@ -242,15 +245,15 @@ if __name__ == "__main__":
     n_components_swissroll = 20
     n_samples_swissroll = 10000
     n_extra_dims_swissroll = 97
-    diffusion_map_on_dataset(dataset="swissroll", n_samples=n_samples_swissroll, n_extra_dims=n_extra_dims_swissroll, n_components=n_components_swissroll)
+    # diffusion_map_on_dataset(dataset="swissroll", n_samples=n_samples_swissroll, n_extra_dims=n_extra_dims_swissroll, n_components=n_components_swissroll)
     benchmark_diffusion_map_runtime(mode="vary_N")
-    benchmark_diffusion_map_runtime(mode="vary_D")
+    # benchmark_diffusion_map_runtime(mode="vary_D")
 
 
     # word2vec
     n_components_wordvec = 20
     n_samples_word2vec = 5000
-    diffusion_map_on_dataset(dataset="word2vec", n_samples=n_samples_word2vec, n_extra_dims=None, n_components=n_components_wordvec)
+    # diffusion_map_on_dataset(dataset="word2vec", n_samples=n_samples_word2vec, n_extra_dims=None, n_components=n_components_wordvec)
 
 
 
