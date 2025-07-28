@@ -3,6 +3,7 @@ import sys
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+import psutil
 from tqdm import tqdm
 from sklearn.datasets import make_swiss_roll
 from datafold.dynfold import LocalRegressionSelection
@@ -14,6 +15,9 @@ sys.path.append(project_root)
 from src.utils.dimensionality_utils import *
 
 if __name__ == "__main__": 
+    def get_available_memory_gb():
+        mem = psutil.virtual_memory()
+        return mem.available / (1024 ** 3)
 
     def diffusion_map_on_dataset(dataset, n_samples, n_extra_dims, n_components): 
         """
@@ -126,20 +130,47 @@ if __name__ == "__main__":
         plt.show()
     
     def benchmark_diffusion_map_runtime(mode): 
-        # choose mode to do the following experiments and benchmark runtime: 
-        # experiment 1: fix D = 100, vary sample size N
-        # experiment 2: fix N = 50000, vary data dimension D
+        """
+        Benchmark the runtime of Diffusion Maps under varying dataset configurations.
+
+        This function evaluates the scalability of Diffusion Maps by measuring its runtime 
+        on synthetic Swiss roll datasets under two settings:
+
+        1. Varying the number of samples (N) while keeping the dimensionality fixed at 100.
+        2. Varying the dimensionality (D) while keeping the number of samples fixed at 50,000.
+
+        For each configuration, a Swiss roll dataset is generated with the desired shape, 
+        optionally augmented with Gaussian noise dimensions. The diffusion map embedding is 
+        then computed, and the runtime is measured and recorded.
+
+        Memory usage is estimated for each configuration, and experiments that are expected 
+        to exceed 10 GB of memory are skipped. Runtime results are visualized on a log-log 
+        plot and saved to disk.
+
+        Parameters
+        ----------
+        mode : str
+            Mode of the benchmark. Must be one of:
+            - "vary_N": Vary the number of samples while fixing dimensionality (D=100).
+            - "vary_D": Vary the dimensionality while fixing the number of samples (N=50000).
+
+        Returns
+        -------
+        None
+            The function saves the runtime plot as a PNG file and displays it.
+            No value is returned.
+        """
         runtimes = []
         x_values = []
         n_components = 10
         if mode == "vary_N": 
-            n_extra_dims = 97
+            n_extra_dims = 0
             sample_sizes = [1e4, 2e4, 5e4, 1e5, 2e5, 5e5, 1e6]
             pbar = tqdm(sample_sizes, desc="Varying N")
 
             for N in pbar: 
                 # estimate memory usage
-                est_mem = estimate_memory_GB(N=N)
+                est_mem = dmap_estimate_memory_GB(N=N)
                 if est_mem > 10:
                     print(f"Skipping N={int(N)}: estimated memory {est_mem:.2f} GB > {10} GB")
                     continue
@@ -180,7 +211,7 @@ if __name__ == "__main__":
 
             for D in pbar: 
                 # estimate memory usage
-                est_mem = estimate_memory_GB(D=D+3)
+                est_mem = dmap_estimate_memory_GB(D=D+3)
                 if est_mem > 10:
                     print(f"Skipping D={int(D+3)}: estimated memory {est_mem:.2f} GB > {10} GB")
                     continue
@@ -242,15 +273,18 @@ if __name__ == "__main__":
     # main
     #################################################
     # swissroll
-    n_components_swissroll = 20
+    # swissroll dimensionality reduction visualization
+    n_components_swissroll = 10
     n_samples_swissroll = 10000
     n_extra_dims_swissroll = 97
     # diffusion_map_on_dataset(dataset="swissroll", n_samples=n_samples_swissroll, n_extra_dims=n_extra_dims_swissroll, n_components=n_components_swissroll)
-    benchmark_diffusion_map_runtime(mode="vary_N")
-    # benchmark_diffusion_map_runtime(mode="vary_D")
 
+    # experiment varying N and D    
+    benchmark_diffusion_map_runtime(mode="vary_N")
+    benchmark_diffusion_map_runtime(mode="vary_D")
 
     # word2vec
+    # word2vec dimensionality reduction visualization
     n_components_wordvec = 20
     n_samples_word2vec = 5000
     # diffusion_map_on_dataset(dataset="word2vec", n_samples=n_samples_word2vec, n_extra_dims=None, n_components=n_components_wordvec)

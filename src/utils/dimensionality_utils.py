@@ -182,7 +182,7 @@ def plot_2d_embedding(X_2d, title="2D Embedding", save_path=None):
         print(f"Plot saved to {save_path}")
     plt.show()
 
-def estimate_memory_GB(N=50000, D=100, factor=8):
+def dmap_estimate_memory_GB(N=50000, D=100):
     """
     Estimate the total memory usage (in GB) for performing diffusion maps on a dataset.
 
@@ -210,3 +210,42 @@ def estimate_memory_GB(N=50000, D=100, factor=8):
     dist_mem = N * N * 8
     total_mem = data_mem + dist_mem
     return total_mem / (1024**3)
+
+def tsne_estimate_memory_GB(N=50000, D=100, n_neighbors=30, use_float32=True):
+    """
+    Estimate realistic peak memory usage in GB for running t-SNE on a dataset of size (N, D),
+    assuming Barnes-Hut approximation (used by scikit-learn).
+
+    Parameters
+    ----------
+    N : int
+        Number of data points.
+    D : int
+        Number of features (input dimensions).
+    n_neighbors : int
+        Approximate number of nearest neighbors per point (used in sparse affinity matrix).
+    use_float32 : bool
+        Whether data is float32 (4 bytes) or float64 (8 bytes).
+
+    Returns
+    -------
+    float
+        Estimated memory usage in gigabytes (GB).
+    """
+
+    bytes_per_float = 4 if use_float32 else 8
+
+    # Input data
+    data_mem = N * D * bytes_per_float
+
+    # Sparse affinity matrix: each point has ~n_neighbors entries
+    # Note: both P_ij and distances stored (rough approximation)
+    sparse_affinity_mem = N * n_neighbors * 2 * bytes_per_float
+
+    # Low-dimensional embedding (usually 2D) and gradient buffer
+    emb_mem = N * 2 * bytes_per_float
+    grad_mem = N * 2 * bytes_per_float * 2  # momentum, update, etc.
+
+    # Total estimated
+    total_bytes = data_mem + sparse_affinity_mem + emb_mem + grad_mem
+    return total_bytes / (1024 ** 3)
