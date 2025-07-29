@@ -95,6 +95,34 @@ def load_word_vectors(bin_path, top_n=10000):
     vectors = model.vectors[:top_n]
     labels = model.index_to_key[:top_n]
     return vectors, labels
+def dmap_estimate_memory_GB(N=50000, D=100):
+    """
+    Estimate the total memory usage (in GB) for performing diffusion maps on a dataset.
+
+    This function estimates the memory required to process a dataset with N samples
+    and D dimensions using Diffusion Maps. It takes into account both the data matrix 
+    (N × D) and the full pairwise distance matrix (N × N), assuming float64 precision 
+    (8 bytes per value).
+
+    Parameters
+    ----------
+    N : int
+        Number of data points (samples).
+
+    D : int, optional (default=100)
+        Number of features (dimensions) per sample.
+
+    Returns
+    -------
+    float
+        Estimated total memory usage in gigabytes (GB), including:
+        - Data matrix: N × D × 8 bytes
+        - Pairwise distance matrix: N × N × 8 bytes
+    """
+    data_mem = N * D * 8
+    dist_mem = N * N * 8
+    total_mem = data_mem + dist_mem
+    return total_mem / (1024**3)
 
 def plot_2d_embedding(X_2d, labels, title="2D Embedding", save_path=None):
     """

@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from swissroll import swiss_roll_dataset
 
-datapoints=10000
+datapoints=100000
 length_phi=4*np.pi
 length_Z=0.001*datapoints
 phi, Z, data = swiss_roll_dataset(length_phi, length_Z, 20, datapoints)
@@ -23,7 +23,7 @@ ax.set_xlabel('X')
 ax.set_ylabel('Y')
 ax.set_zlabel('Z')
 fig.suptitle("Swiss Roll in 3D", fontsize=12)
-ax.set_title(f" -- {datapoints} hidden in 20D space", x=1, ha='right' ,fontsize=10)
+ax.set_title(f" -- {datapoints} data points", x=1, ha='right' ,fontsize=10)
 fig.subplots_adjust(top=0.9)
 
 plt.show()
